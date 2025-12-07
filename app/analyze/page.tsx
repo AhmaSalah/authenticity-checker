@@ -17,7 +17,16 @@ export default function AnalyzePage() {
     const [textInput, setTextInput] = React.useState("")
     const [files, setFiles] = React.useState<File[]>([])
 
-    const handleAnalyze = async (type: "text" | "file") => {
+    const handleAnalyze = React.useCallback(async (type: "text" | "file") => {
+        if (type === "text" && textInput.length < 50) {
+            toast.error("Text must be at least 50 characters")
+            return
+        }
+        if (type === "file" && files.length === 0) {
+            toast.error("Please select at least one file")
+            return
+        }
+
         setIsAnalyzing(true)
 
         // Determine API URL based on environment config
@@ -41,38 +50,51 @@ export default function AnalyzePage() {
                 }),
             })
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+
             const result = await response.json()
 
             // Store result in localStorage for the results page (simple state management)
-            localStorage.setItem("lastResult", JSON.stringify(result))
+            if (typeof window !== "undefined") {
+                try {
+                    localStorage.setItem("lastResult", JSON.stringify(result))
 
-            // Add to history
-            const historyItem = {
-                ...result,
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                timestamp: Date.now(),
-                type: type === "text" ? "text" : files[0]?.type.startsWith("image") ? "image" : "video",
-                preview: type === "text" ? textInput.slice(0, 50) + "..." : `${files.length} file(s): ${files[0]?.name}...`,
+                    // Add to history
+                    // Generate truly unique ID using timestamp, random string, and performance.now for extra uniqueness
+                    const uniqueId = `${Date.now()}-${performance.now()}-${Math.random().toString(36).substring(2, 11)}`
+                    const historyItem = {
+                        ...result,
+                        id: uniqueId,
+                        timestamp: Date.now(),
+                        type: type === "text" ? "text" : files[0]?.type.startsWith("image") ? "image" : "video",
+                        preview: type === "text" ? textInput.slice(0, 50) + "..." : `${files.length} file(s): ${files[0]?.name}...`,
+                    }
+
+                    const history = JSON.parse(localStorage.getItem("history") || "[]")
+                    localStorage.setItem("history", JSON.stringify([historyItem, ...history]))
+                } catch (error) {
+                    console.error("Error saving to localStorage:", error)
+                }
             }
-
-            const history = JSON.parse(localStorage.getItem("history") || "[]")
-            localStorage.setItem("history", JSON.stringify([historyItem, ...history]))
 
             toast.success("Analysis complete!")
             router.push("/results")
         } catch (error) {
             console.error("Analysis failed:", error)
-            toast.error("Analysis failed. Please try again.")
+            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+            toast.error(`Analysis failed: ${errorMessage}`)
         } finally {
             setIsAnalyzing(false)
         }
-    }
+    }, [textInput, files])
 
     return (
-        <div className="max-w-3xl mx-auto space-y-8">
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold">Analyze Content</h1>
-                <p className="text-muted-foreground">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+            <div className="text-center space-y-2 px-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Analyze Content</h1>
+                <p className="text-muted-foreground text-sm sm:text-base">
                     Upload files or paste text to check for AI generation.
                 </p>
             </div>

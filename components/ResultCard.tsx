@@ -3,34 +3,47 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
 import { ConfidenceMeter } from "@/components/ConfidenceMeter"
 import { DetectionResult } from "@/types"
 import { cn } from "@/lib/utils"
-import { AlertTriangle, CheckCircle, Bot } from "lucide-react"
+import { CheckCircle, Bot, Share2, Eye, EyeOff } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { ComparisonView } from "@/components/ComparisonView"
 
 interface ResultCardProps {
     result: DetectionResult
     className?: string
 }
 
-import { Button } from "@/components/ui/button"
-import { Share2, Eye, EyeOff, Copy } from "lucide-react"
-import { toast } from "sonner"
-import { ComparisonView } from "@/components/ComparisonView"
-
 export function ResultCard({ result, className }: ResultCardProps) {
     const isAI = result.label === "AI"
     const [showComparison, setShowComparison] = React.useState(false)
 
-    const handleShare = () => {
+    const handleShare = async () => {
         // In a real app, this would generate a shareable link
         const textToShare = `Authenticity Check Result: ${result.label} (${result.confidence.toFixed(1)}% confidence)`
-        navigator.clipboard.writeText(textToShare)
-        toast.success("Result copied to clipboard!")
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(textToShare)
+                toast.success("Result copied to clipboard!")
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea")
+                textArea.value = textToShare
+                document.body.appendChild(textArea)
+                textArea.select()
+                document.execCommand("copy")
+                document.body.removeChild(textArea)
+                toast.success("Result copied to clipboard!")
+            }
+        } catch (error) {
+            console.error("Failed to copy to clipboard:", error)
+            toast.error("Failed to copy result")
+        }
     }
 
     const detectedSignals = [
@@ -41,16 +54,16 @@ export function ResultCard({ result, className }: ResultCardProps) {
 
     return (
         <div className="space-y-6">
-            <Card className={cn("overflow-hidden border-2", isAI ? "border-red-500/20" : "border-green-500/20", className)}>
+            <Card className={cn("overflow-hidden border-2", isAI ? "border-red-500/20 dark:border-red-500/30" : "border-green-500/20 dark:border-green-500/30", className)}>
                 <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             {isAI ? (
-                                <Bot className="h-6 w-6 text-red-500" />
+                                <Bot className="h-6 w-6 text-red-500 dark:text-red-400" />
                             ) : (
-                                <CheckCircle className="h-6 w-6 text-green-500" />
+                                <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
                             )}
-                            <CardTitle className={cn("text-xl", isAI ? "text-red-500" : "text-green-500")}>
+                            <CardTitle className={cn("text-xl", isAI ? "text-red-500 dark:text-red-400" : "text-green-500 dark:text-green-400")}>
                                 {result.label === "AI" ? "AI-Generated" : "Human / Real"}
                             </CardTitle>
                         </div>

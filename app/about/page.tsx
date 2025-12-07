@@ -5,7 +5,7 @@ import { Shield, Zap, Lock, Eye, CheckCircle, Server } from "lucide-react"
 
 export default function AboutPage() {
     return (
-        <div className="space-y-16 pb-8">
+        <div className="space-y-12 md:space-y-16 pb-8 px-4">
             {/* Hero Section */}
             <section className="text-center space-y-6 py-12 md:py-20 bg-gradient-to-b from-background to-secondary/20 rounded-3xl">
                 <div className="flex justify-center">

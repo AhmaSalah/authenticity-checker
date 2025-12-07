@@ -17,9 +17,9 @@ export function ConfidenceMeter({ score, label, className }: ConfidenceMeterProp
 
     const getColor = () => {
         if (label === "AI") {
-            return score > 80 ? "bg-red-500" : "bg-orange-500"
+            return score > 80 ? "bg-red-500 dark:bg-red-600" : "bg-orange-500 dark:bg-orange-600"
         }
-        return score > 80 ? "bg-green-500" : "bg-blue-500"
+        return score > 80 ? "bg-green-500 dark:bg-green-600" : "bg-blue-500 dark:bg-blue-600"
     }
 
     return (

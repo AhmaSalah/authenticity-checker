@@ -5,8 +5,8 @@ export function Footer() {
     const currentYear = new Date().getFullYear()
 
     return (
-        <footer className="border-t bg-background">
-            <div className="container px-4 py-12 md:py-16">
+        <footer className="border-t bg-background dark:bg-background/95">
+            <div className="container px-4 sm:px-6 lg:px-8 py-12 md:py-16">
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
                     {/* Brand Section */}
                     <div className="space-y-4">
@@ -110,7 +110,7 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
+                <div className="mt-12 pt-8 border-t dark:border-border text-center text-sm text-muted-foreground">
                     <p>© {currentYear} Authenticity Checker. All rights reserved.</p>
                 </div>
             </div>

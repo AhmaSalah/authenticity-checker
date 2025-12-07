@@ -43,16 +43,22 @@ export default function ContactPage() {
 
     const onSubmit = async (data: ContactValues) => {
         setIsLoading(true)
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        console.log(data)
-        toast.success("Message sent successfully! We'll get back to you soon.")
-        form.reset()
-        setIsLoading(false)
+        try {
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500))
+            // In production, send data to API endpoint here
+            toast.success("Message sent successfully! We'll get back to you soon.")
+            form.reset()
+        } catch (error) {
+            console.error("Error sending message:", error)
+            toast.error("Failed to send message. Please try again.")
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
-        <div className="max-w-4xl mx-auto grid gap-8 md:grid-cols-2">
+        <div className="max-w-4xl mx-auto grid gap-8 md:grid-cols-2 px-4">
             <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold">Contact Us</h1>

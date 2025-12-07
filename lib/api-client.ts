@@ -40,9 +40,10 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
             }
 
             return await response.json()
-        } catch (error: any) {
+        } catch (error: unknown) {
             attempt++
-            console.warn(`Attempt ${attempt} failed:`, error)
+            const errorMessage = error instanceof Error ? error.message : "Unknown error"
+            console.warn(`Attempt ${attempt} failed:`, errorMessage)
 
             if (attempt === retries) {
                 if (useMockFallback && process.env.NEXT_PUBLIC_USE_MOCK === "true") {

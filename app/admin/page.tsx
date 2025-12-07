@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BarChart, Activity, Users, FileCheck } from "lucide-react"
+import { Activity, Users, FileCheck, Bot, UserCheck } from "lucide-react"
 import { toast } from "sonner"
 import {
     Dialog,
@@ -34,7 +34,13 @@ export default function AdminPage() {
         humanVerified: 816,
         activeUsers: 156
     })
-    const [selectedScan, setSelectedScan] = React.useState<any>(null)
+    const [selectedScan, setSelectedScan] = React.useState<{
+        id: string
+        type: string
+        status: string
+        confidence: string
+        timestamp: string
+    } | null>(null)
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false)
 
     React.useEffect(() => {
@@ -43,34 +49,40 @@ export default function AdminPage() {
         }
     }, [isAuthenticated, router])
 
-    const handleViewDetails = (scan: any) => {
+    const handleViewDetails = React.useCallback((scan: {
+        id: string
+        type: string
+        status: string
+        confidence: string
+        timestamp: string
+    }) => {
         setSelectedScan(scan)
         setIsDetailsOpen(true)
-    }
+    }, [])
 
     if (!isAuthenticated) return null
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6 md:space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+                    <p className="text-muted-foreground text-sm sm:text-base mt-1">
                         Overview of system performance and detection statistics.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="px-3 py-1">
                         v1.0.0
                     </Badge>
-                    <Badge className="bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:text-green-400">
+                    <Badge className="bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:bg-green-500/20 dark:text-green-400 dark:hover:bg-green-500/30">
                         System Healthy
                     </Badge>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Scans</CardTitle>
@@ -86,7 +98,7 @@ export default function AdminPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">AI Detected</CardTitle>
-                        <BotIcon className="h-4 w-4 text-red-500" />
+                        <Bot className="h-4 w-4 text-red-500 dark:text-red-400" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.aiDetected.toLocaleString()}</div>
@@ -98,7 +110,7 @@ export default function AdminPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Human Verified</CardTitle>
-                        <UserCheckIcon className="h-4 w-4 text-green-500" />
+                        <UserCheck className="h-4 w-4 text-green-500 dark:text-green-400" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.humanVerified.toLocaleString()}</div>
@@ -130,7 +142,8 @@ export default function AdminPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
+                    <div className="overflow-x-auto">
+                        <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
@@ -143,7 +156,7 @@ export default function AdminPage() {
                         <TableBody>
                             {[1, 2, 3, 4, 5].map((i) => {
                                 const scan = {
-                                    id: Math.random().toString(36).substr(2, 9),
+                                    id: Math.random().toString(36).substring(2, 11),
                                     type: i % 2 === 0 ? "Image" : "Text",
                                     status: i % 3 === 0 ? "AI Generated" : "Human",
                                     confidence: (85 + Math.random() * 14).toFixed(1),
@@ -180,6 +193,7 @@ export default function AdminPage() {
                             })}
                         </TableBody>
                     </Table>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -232,50 +246,5 @@ export default function AdminPage() {
                 </DialogContent>
             </Dialog>
         </div>
-    )
-}
-
-function BotIcon(props: React.SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
-        </svg>
-    )
-}
-
-function UserCheckIcon(props: React.SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <polyline points="16 11 18 13 22 9" />
-        </svg>
     )
 }

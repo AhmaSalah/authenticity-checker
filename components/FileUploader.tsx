@@ -24,8 +24,9 @@ export function FileUploader({
     },
 }: FileUploaderProps) {
     const [files, setFiles] = React.useState<File[]>([])
+    const [objectUrls, setObjectUrls] = React.useState<Map<File, string>>(new Map())
 
-    const validateFile = (file: File) => {
+    const validateFile = React.useCallback((file: File) => {
         const isImage = file.type.startsWith("image/")
         const isVideo = file.type.startsWith("video/")
         const isText = file.type.startsWith("text/") || file.name.endsWith(".md") || file.name.endsWith(".json")
@@ -43,23 +44,24 @@ export function FileUploader({
             return false
         }
         return true
-    }
+    }, [])
 
     const onDrop = React.useCallback(
         (acceptedFiles: File[]) => {
             const validFiles = acceptedFiles.filter(validateFile)
 
+            if (validFiles.length === 0) {
+                return
+            }
+
+            // Update local state first
             setFiles((prev) => {
-                const updated = [...prev, ...validFiles].slice(0, maxFiles)
-                onFilesSelected(updated)
-                return updated
+                return [...prev, ...validFiles].slice(0, maxFiles)
             })
 
-            if (validFiles.length > 0) {
-                toast.success(`Added ${validFiles.length} file(s)`)
-            }
+            toast.success(`Added ${validFiles.length} file(s)`)
         },
-        [maxFiles, onFilesSelected]
+        [maxFiles, validateFile]
     )
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -68,19 +70,46 @@ export function FileUploader({
         accept,
     })
 
-    const removeFile = (e: React.MouseEvent, index: number) => {
+    const removeFile = React.useCallback((e: React.MouseEvent, index: number) => {
         e.stopPropagation()
         const newFiles = [...files]
+        const removedFile = newFiles[index]
         newFiles.splice(index, 1)
+        
         setFiles(newFiles)
-        onFilesSelected(newFiles)
-    }
+        
+        // Clean up object URL if it exists
+        if (removedFile) {
+            const objectUrl = objectUrls.get(removedFile)
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl)
+                setObjectUrls(prev => {
+                    const newMap = new Map(prev)
+                    newMap.delete(removedFile)
+                    return newMap
+                })
+            }
+        }
+    }, [files, objectUrls])
 
-    const getFileIcon = (file: File) => {
-        if (file.type.startsWith("image/")) return <ImageIcon className="h-8 w-8 text-blue-500" />
-        if (file.type.startsWith("video/")) return <Film className="h-8 w-8 text-purple-500" />
-        return <FileText className="h-8 w-8 text-orange-500" />
-    }
+    // Sync files with parent component whenever files change
+    React.useEffect(() => {
+        onFilesSelected(files)
+    }, [files, onFilesSelected])
+
+    // Cleanup object URLs on unmount
+    React.useEffect(() => {
+        return () => {
+            objectUrls.forEach(url => URL.revokeObjectURL(url))
+        }
+    }, [objectUrls])
+
+    const getFileIcon = React.useCallback((file: File) => {
+        if (file.type.startsWith("image/")) return <ImageIcon className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+        if (file.type.startsWith("video/")) return <Film className="h-8 w-8 text-purple-500 dark:text-purple-400" />
+        return <FileText className="h-8 w-8 text-orange-500 dark:text-orange-400" />
+    }, [])
+
 
     return (
         <div className="w-full space-y-4">
@@ -122,12 +151,24 @@ export function FileUploader({
                         >
                             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted/50">
                                 {file.type.startsWith("image/") ? (
-                                    <img
-                                        src={URL.createObjectURL(file)}
-                                        alt="preview"
-                                        className="h-full w-full object-cover rounded-md"
-                                        onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
-                                    />
+                                    (() => {
+                                        let objectUrl = objectUrls.get(file)
+                                        if (!objectUrl) {
+                                            objectUrl = URL.createObjectURL(file)
+                                            setObjectUrls(prev => {
+                                                const newMap = new Map(prev)
+                                                newMap.set(file, objectUrl!)
+                                                return newMap
+                                            })
+                                        }
+                                        return (
+                                            <img
+                                                src={objectUrl}
+                                                alt="preview"
+                                                className="h-full w-full object-cover rounded-md"
+                                            />
+                                        )
+                                    })()
                                 ) : (
                                     getFileIcon(file)
                                 )}

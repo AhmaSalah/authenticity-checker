@@ -47,7 +47,7 @@ export function ComparisonView({ originalContent, detectedSignals, type }: Compa
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
             >
-                <Card className="h-full border-primary/20 bg-primary/5">
+                <Card className="h-full border-primary/20 bg-primary/5 dark:bg-primary/10 dark:border-primary/30">
                     <CardHeader>
                         <CardTitle className="text-lg font-medium">Detected Signals</CardTitle>
                     </CardHeader>
@@ -59,7 +59,7 @@ export function ComparisonView({ originalContent, detectedSignals, type }: Compa
                                         <Badge
                                             key={index}
                                             variant="outline"
-                                            className="bg-background/50 border-primary/30 text-primary px-3 py-1"
+                                            className="bg-background/50 dark:bg-background/80 border-primary/30 dark:border-primary/50 text-primary dark:text-primary px-3 py-1"
                                         >
                                             {signal}
                                         </Badge>
